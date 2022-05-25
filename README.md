@@ -3,7 +3,11 @@
  
  ## Setup
  
+ This project requires Unity and GitHub Desktop.
+ 
  Please download Unity 2020.3.25f1 LTS from Unity Hub with Android Build Support. Then, clone this repository and **Open -> Add project from disk**
+ 
+ Also, in GitHub Desktop, please add this as a repository after cloning so that you can fetch/push and keep the code updated.
  
  ## Collaboration
  
