@@ -1,0 +1,4 @@
+#Wed May 25 15:29:17 GST 2022
+base.0=/Users/pi/RubberHand/Temp/gradleOut/launcher/build/intermediates/dex/release/mergeDexRelease/classes.dex
+path.0=classes.dex
+renamed.0=classes.dex
