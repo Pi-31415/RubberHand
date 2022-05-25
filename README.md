@@ -13,4 +13,6 @@
  
  Please test everything locally, and push to GitHub once you have make sure that everything is working locally without errors.
  
+ **You do not need to build. You just need things to work on the local play test.**
+ 
  If there is any VR related runs required on Oculus Quest 2 device, please notify Pi.
