@@ -1,12 +1,14 @@
 
+// Global Time Tracker
+int currentTime = 0;
 // Declare Motor as Class
 class Motor {
 private:
   byte pin;
-  int SOA;                // Stimuli Onset Asynchrony in milliseconds
-  int DOS;                // Duration of Signals in milliseconds
-  double activeTime;      // Time taken for motor to go from minimum to maximum
-                          // voltage in milliseconds
+  int SOA;           // Stimuli Onset Asynchrony in milliseconds
+  int DOS;           // Duration of Signals in milliseconds
+  double activeTime; // Time taken for motor to go from minimum to maximum
+  // voltage in milliseconds
   int totalTime;          // Total Time when the motor is active in milliseconds
   int PA, PS, PD, PE = 0; //   These are points for the vibration cycle
   int P0 = -1;
@@ -22,7 +24,7 @@ public:
     this->SOA = SOA;
     this->DOS = DOS;
     this->activeTime = activeTime;
-    this->totalTime = SOA + DOS + activeTime + activeTime;
+    this->totalTime = DOS + activeTime + activeTime;
     this->amplitudeStep = 255.0 / activeTime;
     init();
   }
@@ -32,55 +34,74 @@ public:
     pinMode(pin, OUTPUT);
     off();
   }
+  // Getters and Setters
+  int getPS() { return PS; }
+  int getCurrentIntensity() {
+    int intIntensity = currentIntensity;
+    return intIntensity;
+  }
+
   // This function sets the motor at a particular intensity between 0 and 255
   void set(double intensity) {
     int intIntensity = intensity;
     analogWrite(pin, intIntensity);
   }
-  void off() { set(0); }
-  void vibrate() {
-    Serial.print(currentIntensity);
-    Serial.print('\n');
-    //   Main Vibration Function
-    if (P0 == -1) {
-      P0 = millis();
-    } else {
+  void off() {
+    set(0);
+    currentIntensity = 0;
+  }
+  void vibrate(int startTime) {
+    if (millis() >= startTime) {
+      // Set Up
+      P0 = startTime;
       PA = P0 + activeTime;
       PS = PA + SOA;
       PD = PA + DOS;
       PE = P0 + totalTime;
-      int currentTime = millis();
-      //   Vibrate according to current lifecycle
-      //   This is the increasing part
+      // Print Initial Info
+      currentTime = millis();
+      if (currentTime == startTime) {
+        // Uncomment this to debug
+        // printInfo();
+      }
+
+      if (currentIntensity != 0) {
+        // Uncomment this for debugging individual motors in Serial Plotter
+        //   Serial.print(currentIntensity);
+        //   Serial.print('\n');
+      }
+      //   Main Vibration Function
+      // Increase
       if (currentTime >= P0 && currentTime < PA) {
-        //   Guard the current Intensity
         currentIntensity += amplitudeStep;
         if (currentIntensity >= 255) {
           currentIntensity = 255;
-        };
-        if (currentIntensity <= 0) {
-          currentIntensity = 0;
-        };
-        this->set(currentIntensity);
-      } else if (currentTime >= PA && currentTime < PD) {
+        }
+        set(currentIntensity);
+      }
+
+      // Hold Constant
+
+      else if (currentTime >= PA && currentTime < PD) {
         currentIntensity = 255;
-        this->set(currentIntensity);
-      } else if (currentTime >= PD && currentTime < PE) {
-        //   Guard the current Intensity
+        set(currentIntensity);
+      }
+
+      // Decrease
+      else if (currentTime >= PD && currentTime < PE) {
         currentIntensity -= amplitudeStep;
-        if (currentIntensity >= 255) {
-          currentIntensity = 255;
-        };
         if (currentIntensity <= 0) {
           currentIntensity = 0;
-        };
-        this->set(currentIntensity);
-      } else {
-        currentIntensity = 0;
+        }
+        set(currentIntensity);
+      }
+
+      else {
         off();
       }
     }
   }
+  // Following is for debugging
   void printInfo() {
     Serial.print("-----------------");
     Serial.print('\n');
@@ -121,7 +142,7 @@ public:
 };
 
 /**************************************************
- * Main Program Begins Here
+   Main Program Begins Here
  **************************************************/
 
 // Pin Variables for vibration motors.
@@ -135,20 +156,39 @@ int motor_pin[] = {PIN_1, PIN_2, PIN_3, PIN_4};
 const int number_of_modules = sizeof(motor_pin) / sizeof(int);
 
 // Parameters are Motor(byte pin, int SOA, int DOS, int activeTime)
-Motor Motor1(motor_pin[0], 100, 50, 1000);
-Motor Motor2(motor_pin[1], 110, 220, 50);
-Motor Motor3(motor_pin[2], 110, 220, 50);
-Motor Motor4(motor_pin[3], 110, 220, 50);
+Motor Motor1(motor_pin[0], 110, 220, 100);
+Motor Motor2(motor_pin[1], 110, 220, 100);
+Motor Motor3(motor_pin[2], 110, 220, 100);
+Motor Motor4(motor_pin[3], 110, 220, 100);
 // Following is the array of motors for easier access
 Motor Motors[] = {Motor1, Motor2, Motor3, Motor4};
 
+// Initialize Serial Communication
 void setup() { Serial.begin(115200); }
 
+int activtime = 0;
 // Main Arduino Loop
 void loop() {
+  //  Loop every 2 seconds
+  if (millis() % 2000 == 0) {
+    activtime = millis();
+  }
+  Motors[3].vibrate(activtime);
+  Motors[2].vibrate(Motors[3].getPS());
+  Motors[1].vibrate(Motors[2].getPS());
+  Motors[0].vibrate(Motors[1].getPS());
 
-  if (millis() >= 5000) {
-    Motors[0].vibrate();
-    // Motors[0].printInfo();
+  // Plot
+  int sum = Motors[3].getCurrentIntensity() + Motors[2].getCurrentIntensity() +
+            Motors[1].getCurrentIntensity() + Motors[0].getCurrentIntensity();
+  if (sum != 0) {
+    Serial.print(Motors[3].getCurrentIntensity());
+    Serial.print(",");
+    Serial.print(Motors[2].getCurrentIntensity());
+    Serial.print(",");
+    Serial.print(Motors[1].getCurrentIntensity());
+    Serial.print(",");
+    Serial.print(Motors[0].getCurrentIntensity());
+    Serial.print('\n');
   }
 }
