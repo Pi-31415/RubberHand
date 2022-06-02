@@ -41,7 +41,6 @@ ScriptsOnlyBuild:
     - Assets.Oculus.VR.Editor.OVRPlatformToolSettings
     - OVRConfig
     Oculus.VR.dll:
-    - OVRCameraRig
     - OVRControllerHelper
     - OVRHand
     - OVRHeadsetEmulator
