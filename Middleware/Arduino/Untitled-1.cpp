@@ -3,6 +3,7 @@
 unsigned long currentTime = 0;
 // Declare Motor as Class
 class Motor {
+private:
   byte pin;
   unsigned long SOA; // Stimuli Onset Asynchrony in milliseconds
   unsigned long DOS; // Duration of Signals in milliseconds
